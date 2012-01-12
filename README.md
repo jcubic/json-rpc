@@ -16,6 +16,8 @@ class Foo {
 }
 
 handle_json_rpc(new Foo());
+
+?>
 ```
 
 
@@ -46,7 +48,7 @@ $(function() {
 multi service
 
 ```javascript
-
+get_user get_content_list
 $(function() {
     var service = json.multi_service(["foo.php", "bar.php"], function(error) {
         alert(error.message);
@@ -54,11 +56,20 @@ $(function() {
 
     service(function(foo, bar) {
         foo.get_user("<firstName>", "<lasteName>")(function(user) {
-            bar.get_content_list(user.id)(function(list) {
-                var ul $('ul');
+            foo.get_content_list(user.id)(function(list) {
+                var ul $('ul#users');
                 $.each(list, function(i, element) {
                     ul.append('<li>' + element.name + '</li>');
                 });
+            });
+        });
+        bar.get_product_list()(function(products) {
+            $.each(products, function(product) {
+                if (product.status == "obsolate") {
+                    bar.remove_product(product.id)(function(result) {
+                        console.log("product '" + product.name + "' removed");
+                    });
+                }
             });
         });
     });
@@ -67,13 +78,12 @@ $(function() {
 
 ## Dependencies
 
-Javascript library use jQuery <http://jquery.com/>
+Javascript part use jQuery <http://jquery.com/>
 
 
 ## License
 
-This is free software. You may distribute it under the terms of the
+ Licensed under GNU GPL Version 3 license
 
-Poetic License. http://genaud.net/2005/10/poetic-license/
+ Copyright (c) 2011 Jakub Jankiewicz <http://jcubic.pl>
 
-Copyright (c) 2012 Jakub Jankiewicz
