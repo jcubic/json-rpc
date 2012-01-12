@@ -48,7 +48,7 @@ $(function() {
 multi service
 
 ```javascript
-get_user get_content_list
+
 $(function() {
     var service = json.multi_service(["foo.php", "bar.php"], function(error) {
         alert(error.message);
@@ -83,7 +83,7 @@ Javascript part use jQuery <http://jquery.com/>
 
 ## License
 
- Licensed under GNU GPL Version 3 license
+ Licensed under GNU GPL Version 3 license <http://www.gnu.org/copyleft/gpl.html>
 
  Copyright (c) 2011 Jakub Jankiewicz <http://jcubic.pl>
 
