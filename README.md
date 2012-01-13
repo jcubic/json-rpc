@@ -1,6 +1,7 @@
 ## Server and Client implementaion of JSON-RPC (php <=> javascript)
 
 This is JSON-RPC implementaion, server in php and client in javascript
+based on version 1.1 of the [Specification](http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification")
 
 ## Server
 
@@ -20,9 +21,6 @@ handle_json_rpc(new Foo());
 ?>
 ```
 
-
-Javascript library should be use with this php implementation because it have
-built in method "list_methods", that will return all class methods.
 
 ## Client
 
@@ -55,6 +53,7 @@ $(function() {
     });
 
     service(function(foo, bar) {
+
         foo.get_user("<firstName>", "<lasteName>")(function(user) {
             foo.get_content_list(user.id)(function(list) {
                 var ul $('ul#users');
@@ -63,6 +62,7 @@ $(function() {
                 });
             });
         });
+
         bar.get_product_list()(function(products) {
             $.each(products, function(product) {
                 if (product.status == "obsolate") {
@@ -72,6 +72,7 @@ $(function() {
                 }
             });
         });
+
     });
 });
 ```
