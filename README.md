@@ -82,12 +82,12 @@ $(function() {
 
 ## Dependencies
 
-Javascript part use jQuery <http://jquery.com/>
+Javascript part use [jQuery library][http://jquery.com/]
 
 
 ## License
 
- Licensed under GNU GPL Version 3 license <http://www.gnu.org/copyleft/gpl.html>
+ Licensed under [GNU GPL Version 3 license][http://www.gnu.org/copyleft/gpl.html]
 
- Copyright (c) 2011 Jakub Jankiewicz <http://jcubic.pl>
+ Copyright (c) 2011 [Jakub Jankiewicz][http://jcubic.pl]
 
