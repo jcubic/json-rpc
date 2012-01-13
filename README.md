@@ -48,11 +48,9 @@ multi service
 ```javascript
 
 $(function() {
-    var service = json.multi_service(["foo.php", "bar.php"], function(error) {
+    json.multi_service(["foo.php", "bar.php"], function(error) {
         alert(error.message);
-    });
-
-    service(function(foo, bar) {
+    })(function(foo, bar) {
 
         foo.get_user("<firstName>", "<lasteName>")(function(user) {
             foo.get_content_list(user.id)(function(list) {
