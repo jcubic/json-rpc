@@ -65,8 +65,14 @@ var json = (function() {
                                 continuation(resp.result);
                             }
                         }, function(jxhr, status, thrown) {
+							var message;
+							if (!thrown) {
+                                message = jxhr.status + ' ' + jxhr.statusText;
+							} else {
+                                message = thrown;
+                            }
                             error({
-                                message: 'AJAX Eroror: "' + thrown + '"',
+                                message: 'AJAX Eroror: "' + message + '"',
                                 code: 1000
                             });
                         });

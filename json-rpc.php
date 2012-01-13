@@ -120,13 +120,13 @@ function handle_json_rpc($object) {
   // handle Errors
   if (!$input) {
     if ($GLOBALS['HTTP_RAW_POST_DATA'] == "") {
-      echo response(null, 0, array("code"=> -32700,
+      echo response(null, 0, array("code"=> 101,
 				   "message"=>"Parse Error: no data"));
     } else {
       // json parse error
       $error = json_error();
       $id = extract_id();
-      echo response(null, $id, array("code"=> -32700,
+      echo response(null, $id, array("code"=> 102,
 				     "message"=>"Parse Error: $error"));
     }
     exit;
@@ -147,7 +147,7 @@ function handle_json_rpc($object) {
       } else {
 	    $error = "unknown reason";
       }
-      echo response(null, $id, array("code" => -32600,
+      echo response(null, $id, array("code" => 103,
 				     "message" => "Invalid Request: $error ")); 
       //": " . $GLOBALS['HTTP_RAW_POST_DATA']));
       exit;
@@ -196,21 +196,24 @@ function handle_json_rpc($object) {
       }
     } else if (!in_array($method, $methods)) {
       $msg = 'There is no ' . $method . ' method';
-      echo response(null, $id, array("code" =>-32601, "message" => $msg));
+      echo response(null, $id, array("code" =>104, "message" => $msg));
     } else {
       $method_object = new ReflectionMethod($class, $method);
-      if (count($params) != $method_object->getNumberOfParameters()) {
-         throw new Exception("Wrong number of parameters. Got $num_got " .
-                             "expect $num_expect");
+      $num_got = count($params);
+      $num_expect = $method_object->getNumberOfParameters();
+      if ($num_got != $num_expect) {
+         $msg = "Wrong number of parameters. Got $num_got expect $num_expect";
+         echo response(null, $id, array("code" =>105, "message" => $msg));
+      } else {
+        //throw new Exception('x -> ' . json_encode($params));
+        $result = call_user_func_array(array($object, $method), $params);
+        echo response($result, $id, null);
       }
-      //throw new Exception('x -> ' . json_encode($params));
-      $result = call_user_func_array(array($object, $method), $params);
-      echo response($result, $id, null);
     }
   } catch (Exception $e) {
     //catch all exeption from user code
-    $msg = "Internal error: " . $e->getMessage();
-    echo response(null, $id, array("code"=>-32603, "message"=>$msg));
+    $msg = $e->getMessage();
+    echo response(null, $id, array("code"=>200, "message"=>$msg));
   }
 }
 
