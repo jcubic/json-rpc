@@ -20,13 +20,14 @@
 var json = (function() {
     function rpc(url, id, method, params, success, error) {
         var request = JSON.stringify({
-            'jsonrpc': '2.0', 'method': method,
+            'version': '1.1', 'method': method,
             'params': params, 'id': id});
         return $.ajax({
             url: url,
             data: request,
             success: success,
             error: error,
+            accepts: 'application/json',
             contentType: 'application/json',
             dataType: 'json',
             async: true,
@@ -52,41 +53,51 @@ var json = (function() {
                 });
             };
         },
-        service: function(uri, error) {
+        service: function(uri, user_error) {
             var id = 1;
+            
+            function ajax_error(jxhr, status, thrown) {
+				var message;
+				if (!thrown) {
+                    message = jxhr.status + ' ' + jxhr.statusText;
+				} else {
+                    message = thrown;
+                }
+                user_error({
+                    message: 'AJAX Eroror: "' + message + '"',
+                    code: 1000
+                });
+            }
+            
             function rpc_wrapper(method) {
                 return function(/* args */) {
                     var args = Array.prototype.slice.call(arguments);
                     return function(continuation) {
                         rpc(uri, id++, method, args, function(resp) {
                             if (resp.error) {
-                                error(resp.error);
+                                user_error(resp.error);
                             } else {
                                 continuation(resp.result);
                             }
-                        }, function(jxhr, status, thrown) {
-							var message;
-							if (!thrown) {
-                                message = jxhr.status + ' ' + jxhr.statusText;
-							} else {
-                                message = thrown;
-                            }
-                            error({
-                                message: 'AJAX Eroror: "' + message + '"',
-                                code: 1000
-                            });
-                        });
+                        }, ajax_error);
                     };
                 };
             }
             return function(continuation) {
-                rpc_wrapper('list_methods')()(function(list) {
-                    var service = {};
-                    $.each(list, function(i, name) {
-                        service[name] = rpc_wrapper(name);
-                    });
-                    continuation(service);
-                });
+                rpc(uri, id++, 'system.describe', null, function(response) {
+                    if (response.error) {
+                        user_error(response.error);
+                    } else {
+                        var service = {};
+                        $.each(response.procs, function(i, proc) {
+                            service[proc.name] = rpc_wrapper(proc.name);
+                            service[proc.name].toString = function() {
+                                return '#<rpc-method: ' + proc.name + '>';
+                            };
+                        });
+                        continuation(service);
+                    }
+                }, ajax_error);
             };
         }
     };
