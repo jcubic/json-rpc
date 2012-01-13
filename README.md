@@ -63,8 +63,12 @@ $(function() {
         bar.get_product_list()(function(products) {
             $.each(products, function(product) {
                 if (product.status == "obsolate") {
-                    bar.remove_product(product.id)(function(result) {
-                        console.log("product '" + product.name + "' removed");
+                    bar.remove_product(product.id)(function(success) {
+                        if (success) {
+                            console.log("product '" + product.name + "' removed");
+                        } else {
+                            console.log("Error removing product '" + product.name + "'");
+                        }
                     });
                 }
             });
