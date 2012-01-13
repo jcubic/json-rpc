@@ -1,7 +1,7 @@
 ## Server and Client implementaion of JSON-RPC (php <=> javascript)
 
 This is JSON-RPC implementaion, server in php and client in javascript
-based on version 1.1 of the [Specification](http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification")
+based on [version 1.1 of the Specification](http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification")
 
 ## Server
 
@@ -13,7 +13,6 @@ class Foo {
     function ping($str) {
         return "pong '$str'";
     }
-
 }
 
 handle_json_rpc(new Foo());
