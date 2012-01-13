@@ -3,8 +3,6 @@
 This is JSON-RPC implementaion, server in php and client in javascript
 based on [version 1.1 of the Specification][1]
 
-[1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
-
 ## Server
 
 ```php
@@ -82,12 +80,18 @@ $(function() {
 
 ## Dependencies
 
-Javascript part use [jQuery library][http://jquery.com/]
+Javascript part use [jQuery library][2]
 
 
 ## License
 
- Licensed under [GNU GPL Version 3 license][http://www.gnu.org/copyleft/gpl.html]
+ Licensed under [GNU GPL Version 3 license][3]
 
- Copyright (c) 2011 [Jakub Jankiewicz][http://jcubic.pl]
+ Copyright (c) 2011 [Jakub Jankiewicz][4] 
+
+
+[1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
+[2]: http://jquery.com/ "jQuery library"
+[3]: http://www.gnu.org/copyleft/gpl.html "GNU GPL Version 3 license"
+[4]: http://jcubic.pl "Jakub Jankiewicz"
 
