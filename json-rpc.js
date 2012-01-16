@@ -65,7 +65,7 @@ var json = (function() {
                 }
                 user_error({
                     message: 'AJAX Eroror: "' + message + '"',
-                    code: 1000
+                    code: 300
                 });
             }
             
@@ -74,7 +74,13 @@ var json = (function() {
                     var args = Array.prototype.slice.call(arguments);
                     return function(continuation) {
                         rpc(uri, id++, method, args, function(resp) {
-                            if (resp.error) {
+							if (!resp) {
+                                user_error({
+                                    code: 301,
+                                    message: "No response from method `" + 
+                                        method + "'"
+                                });
+							} else if (resp.error) {
                                 user_error(resp.error);
                             } else {
                                 continuation(resp.result);
@@ -85,14 +91,19 @@ var json = (function() {
             }
             return function(continuation) {
                 rpc(uri, id++, 'system.describe', null, function(response) {
-                    if (response.error) {
+					if (!response) {
+						user_error({
+							code: 301,
+							message: "No response from `system.describe' method"
+						});
+					} else if (response.error) {
                         user_error(response.error);
                     } else {
                         var service = {};
                         $.each(response.procs, function(i, proc) {
                             service[proc.name] = rpc_wrapper(proc.name);
                             service[proc.name].toString = function() {
-                                return '#<rpc-method: ' + proc.name + '>';
+                                return "#<rpc-method: `" + proc.name + "'>";
                             };
                         });
                         continuation(service);
