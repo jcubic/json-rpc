@@ -37,14 +37,14 @@ var json = (function() {
     };
 
     return {
-        multi_service: function(uris, error) {
+        multi_service: function(uris, user_error) {
             var len = uris.length;
             var make_service = this.service;
             return function(continuation) {
                 var count = 0;
                 var serviceses = [];
                 $.each(object, function(k, v) {
-                    make_service(v, error)(function(service) {
+                    make_service(v, user_error)(function(service) {
                         serviceses.push(service);
                         if (++count == len) {
                             continuation.apply(null, serviceses);
@@ -64,7 +64,7 @@ var json = (function() {
                     message = thrown;
                 }
                 user_error({
-                    message: 'AJAX Eroror: "' + message + '"',
+                    message: 'AJAX Error: "' + message + '"',
                     code: 300
                 });
             }
