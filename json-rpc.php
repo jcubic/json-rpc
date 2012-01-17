@@ -107,7 +107,7 @@ function extract_id() {
     if (preg_match($regex, $GLOBALS['HTTP_RAW_POST_DATA'], $m)) {
         return $m[1];
     } else {
-        return 0;
+        return null;
     }
 }
 // ----------------------------------------------------------------------------
@@ -132,55 +132,77 @@ function service_description($object) {
 }
 
 // ----------------------------------------------------------------------------
-function handle_json_rpc($object) {
+function error_handler($err, $message, $file, $line) {
+    $content = file($file);
+    header('Content-Type: application/json');
+    $id = extract_id(); // don't need to parse
+    $error = array(
+       "code" => 100,
+       "message" => "Server error",
+       "error" => array(
+          "name" => "PHPErorr",
+          "code" => $err,
+          "message" => $message,
+          "file" => $file,
+          "at" => $line,
+          "line" => $content[$line-1]));
+    echo response(null, $id, $error);
+    exit;
+}
 
+// ----------------------------------------------------------------------------
+function get_json_request() {
+    $request = $GLOBALS['HTTP_RAW_POST_DATA'];
+    /*
+    if ($request == '') {
+        $input = file_get_contents('php://input');
+    }
+    */
+	if ($request == "") {
+        throw new JsonRpcExeption(101, "Parse Error: no data");
+    }
+    $encoding = mb_detect_encoding($request, 'auto');
+    //convert to unicode
+    if ($encoding != 'UTF-8') {
+        $request = iconv($encoding, 'UTF-8', $request);
+    }
+    $request = json_decode($request);
+    if ($request == NULL) { // parse error
+        $error = json_error();
+        throw new JsonRpcExeption(101, "Parse Error: $error");
+    }
+    return $request;
+}
+
+// ----------------------------------------------------------------------------
+function handle_json_rpc($object) {
+    ini_set('display_errors', 1);
+    ini_set('track_errors', 1);
+    error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+    set_error_handler('error_handler');
     try {
-        /*
-          if ($input == '') {
-          $input = file_get_contents('php://input');
-          }
-        */
-        $input = $GLOBALS['HTTP_RAW_POST_DATA'];
-        $encoding = mb_detect_encoding($input, 'auto');
-        //convert to unicode
-        if ($encoding != 'UTF-8') {
-            $input = iconv($encoding, 'UTF-8', $input);
-        }
-        $input = json_decode($input);
+        $input = get_json_request();
+
         header('Content-Type: application/json');
 
-        // handle Errors
-        if (!$input) {
-            if ($GLOBALS['HTTP_RAW_POST_DATA'] == "") {
-                $id = null;
-                throw new JsonRpcExeption(101, "Parse Error: no data");
-            } else {
-                // json parse error
-                $error = json_error();
-                $id = extract_id();
-                throw new JsonRpcExeption(101, "Parse Error: $error");
-            }
-            exit;
-        } else {
-            $method = get_field($input, 'method', null);
-            $params = get_field($input, 'params', null);
-            $id = get_field($input, 'id', null);
+        $method = get_field($input, 'method', null);
+        $params = get_field($input, 'params', null);
+        $id = get_field($input, 'id', null);
 
-            // json rpc error
-            if (!($method && $id)) {
-                if (!$id) {
-                    $id = extract_id();
-                }
-                if (!$method) {
-                    $error = "no method";
-                } else if (!$id) {
-                    $error = "no id";
-                } else {
-                    $error = "unknown reason";
-                }
-                throw new JsonRpcExeption(103,  "Invalid Request: $error");
-                //": " . $GLOBALS['HTTP_RAW_POST_DATA']));
+        // json rpc error
+        if (!($method && $id)) {
+            if (!$id) {
+                $id = extract_id();
             }
+            if (!$method) {
+                $error = "no method";
+            } else if (!$id) {
+                $error = "no id";
+            } else {
+                $error = "unknown reason";
+            }
+            throw new JsonRpcExeption(103,  "Invalid Request: $error");
+            //": " . $GLOBALS['HTTP_RAW_POST_DATA']));
         }
 
         // fix params (if params is null set it to empty array)
@@ -220,7 +242,11 @@ function handle_json_rpc($object) {
     } catch (JsonRpcExeption $e) {
         // exteption with error code
         $msg = $e->getMessage();
-        echo response(null, $id, array("code"=>$e->code(), "message"=>$msg));
+        $code = $e->code();
+        if ($code = 101) { // parse error;
+            $id = extract_id();
+        }
+        echo response(null, $id, array("code"=>$code, "message"=>$msg));
     } catch (Exception $e) {
         //catch all exeption from user code
         $msg = $e->getMessage();
