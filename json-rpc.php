@@ -1,7 +1,7 @@
 <?php
 /*
   JSON-RPC Server implemenation
-  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl> 
+  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl>
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,14 +20,13 @@
 /*
   USAGE: create one class with public methods and call handle_json_rpc function
   with instance of this class
-           
+
   <?php
   require('json_rpc.php');
   class Server {
     public function test($message) {
       return "you send " . $message;
     }
-                   
   }
 
   handle_json_rpc(new Server());
@@ -68,6 +67,14 @@ function json_error() {
     }
 }
 
+// ----------------------------------------------------------------------------
+function get_raw_post_data() {
+    if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
+        return $GLOBALS['HTTP_RAW_POST_DATA'];
+    } else {
+        return file_get_contents('php://input');
+    }
+}
 
 // ----------------------------------------------------------------------------
 // check if object has field
@@ -104,7 +111,8 @@ function response($result, $id, $error) {
 // try to extract id from broken json
 function extract_id() {
     $regex = '/[\'"]id[\'"] *: *([0-9]*)/';
-    if (preg_match($regex, $GLOBALS['HTTP_RAW_POST_DATA'], $m)) {
+    $raw_data = get_raw_post_data();
+    if (preg_match($regex, $raw_data, $m)) {
         return $m[1];
     } else {
         return null;
@@ -125,7 +133,7 @@ function service_description($object) {
         if (array_key_exists($help_str_name, $static)) {
             $proc['help'] = $static[$help_str_name];
         }
-        
+
         $service['procs'][] = $proc;
     }
     return $service;
@@ -152,7 +160,7 @@ function error_handler($err, $message, $file, $line) {
 
 // ----------------------------------------------------------------------------
 function get_json_request() {
-    $request = $GLOBALS['HTTP_RAW_POST_DATA'];
+    $request = get_raw_post_data();
     /*
     if ($request == '') {
         $input = file_get_contents('php://input');
@@ -217,7 +225,7 @@ function handle_json_rpc($object) {
                 $params = get_object_vars($params);
             }
         }
-  
+		
         // call Service Method
         $class = get_class($object);
         $methods = get_class_methods($class);
