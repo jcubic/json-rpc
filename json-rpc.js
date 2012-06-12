@@ -18,7 +18,6 @@
  */
 
 var rpc = (function() {
-	var requests = [];
     function rpc(url, id, method, params, success, error, debug) {
 		var request  = {
             'version': '1.1', 'method': method,
@@ -27,7 +26,7 @@ var rpc = (function() {
 		if (debug && debug.constructor == Function) {
 			debug(request, 'request');
 		}
-        var request = $.ajax({
+        return $.ajax({
             url: url,
             data: JSON.stringify(request),
             success: debug && debug.constructor == Function ? function(response) {
@@ -42,31 +41,26 @@ var rpc = (function() {
             cache: false,
             //timeout: 1,
             type: 'POST'});
-		requests.push(requests);
-		return request;
     };
-	$(document).unload(function() {
-		for (var i=requests.length; i--; ) {
-			requests[i].abort();
-		}
-	});
     return function(options) {
         var id = 1;
         function ajax_error(jxhr, status, thrown) {
-			var message;
-			if (!thrown) {
-                message = jxhr.status + ' ' + jxhr.statusText;
-			} else {
-                message = thrown;
-            }
-			message = 'AJAX Error: "' + message + '"';
-            if (options.error) {
-				options.error({
-					message: message,
-					code: 300
-				});
-			} else {
-				throw message;
+			if (jxhr.readyState != 0 || options.errorOnAbort) {
+				var message;
+				if (!thrown) {
+					message = jxhr.status + ' ' + jxhr.statusText;
+				} else {
+					message = thrown;
+				}
+				message = 'AJAX Error: "' + message + '"';
+				if (options.error) {
+					options.error({
+						message: message,
+						code: 300
+					});
+				} else {
+					throw message;
+				}
 			}
         }
         function rpc_wrapper(method) {
