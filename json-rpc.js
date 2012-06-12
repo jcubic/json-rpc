@@ -17,15 +17,23 @@
  *
  */
 
-var json = (function() {
-    function rpc(url, id, method, params, success, error) {
-        var request = JSON.stringify({
+var rpc = (function() {
+	var requests = [];
+    function rpc(url, id, method, params, success, error, debug) {
+		var request  = {
             'version': '1.1', 'method': method,
-            'params': params, 'id': id});
-        return $.ajax({
+            'params': params, 'id': id
+		};
+		if (debug && debug.constructor == Function) {
+			debug(request, 'request');
+		}
+        var request = $.ajax({
             url: url,
-            data: request,
-            success: success,
+            data: JSON.stringify(request),
+            success: debug && debug.constructor == Function ? function(response) {
+				debug(response, 'response');
+				success(response);
+			} : success,
             error: error,
             accepts: 'application/json',
             contentType: 'application/json',
@@ -34,82 +42,91 @@ var json = (function() {
             cache: false,
             //timeout: 1,
             type: 'POST'});
+		requests.push(requests);
+		return request;
     };
-
-    return {
-        multi_service: function(uris, user_error) {
-            var len = uris.length;
-            var make_service = this.service;
-            return function(continuation) {
-                var count = 0;
-                var serviceses = [];
-                $.each(object, function(k, v) {
-                    make_service(v, user_error)(function(service) {
-                        serviceses.push(service);
-                        if (++count == len) {
-                            continuation.apply(null, serviceses);
+	$(document).unload(function() {
+		for (var i=requests.length; i--; ) {
+			requests[i].abort();
+		}
+	});
+    return function(options) {
+        var id = 1;
+        function ajax_error(jxhr, status, thrown) {
+			var message;
+			if (!thrown) {
+                message = jxhr.status + ' ' + jxhr.statusText;
+			} else {
+                message = thrown;
+            }
+			message = 'AJAX Error: "' + message + '"';
+            if (options.error) {
+				options.error({
+					message: message,
+					code: 300
+				});
+			} else {
+				throw message;
+			}
+        }
+        function rpc_wrapper(method) {
+            return function(/* args */) {
+                var args = Array.prototype.slice.call(arguments);
+                return function(continuation) {
+                    rpc(options.url, id++, method, args, function(resp) {
+						if (!resp) {
+							var message = "No response from method `" +
+								method + "'";
+							if (options.error) {
+								options.error({
+									code: 301,
+									message: message
+								});
+							} else {
+								throw message;
+							}
+						} else if (resp.error) {
+							if (options.error) {
+								options.error(resp.error);
+							} else {
+								throw resp.error.message;
+							}
+                        } else {
+                            continuation(resp.result);
                         }
-                    });
-                });
-            };
-        },
-        service: function(uri, user_error) {
-            var id = 1;
-            
-            function ajax_error(jxhr, status, thrown) {
-				var message;
-				if (!thrown) {
-                    message = jxhr.status + ' ' + jxhr.statusText;
-				} else {
-                    message = thrown;
-                }
-                user_error({
-                    message: 'AJAX Error: "' + message + '"',
-                    code: 300
-                });
-            }
-            
-            function rpc_wrapper(method) {
-                return function(/* args */) {
-                    var args = Array.prototype.slice.call(arguments);
-                    return function(continuation) {
-                        rpc(uri, id++, method, args, function(resp) {
-							if (!resp) {
-                                user_error({
-                                    code: 301,
-                                    message: "No response from method `" + 
-                                        method + "'"
-                                });
-							} else if (resp.error) {
-                                user_error(resp.error);
-                            } else {
-                                continuation(resp.result);
-                            }
-                        }, ajax_error);
-                    };
+                    }, ajax_error, options.debug);
                 };
-            }
-            return function(continuation) {
-                rpc(uri, id++, 'system.describe', null, function(response) {
-					if (!response) {
-						user_error({
-							code: 301,
-							message: "No response from `system.describe' method"
-						});
-					} else if (response.error) {
-                        user_error(response.error);
-                    } else {
-                        var service = {};
-                        $.each(response.procs, function(i, proc) {
-                            service[proc.name] = rpc_wrapper(proc.name);
-                            service[proc.name].toString = function() {
-                                return "#<rpc-method: `" + proc.name + "'>";
-                            };
-                        });
-                        continuation(service);
-                    }
-                }, ajax_error);
             };
         }
+        return function(continuation) {
+            rpc(options.url, id++, 'system.describe', null, function(response) {
+				if (!response) {
+					if (options.error) {
+						var message = "No response from `system.describe' method";
+						options.error({
+							code: 301,
+							message: message
+						});
+					} else {
+						throw message;
+					}
+				} else if (response.error) {
+                    if (options.error) {
+						options.error(response.error);
+					} else {
+						throw response.error.message;
+					}
+                } else {
+                    var service = {};
+                    $.each(response.procs, function(i, proc) {
+                        service[proc.name] = rpc_wrapper(proc.name);
+                        service[proc.name].toString = function() {
+                            return "#<rpc-method: `" + proc.name + "'>";
+                        };
+                    });
+                    continuation(service);
+                }
+            }, ajax_error, options.debug);
+        };
     };
 })();
