@@ -28,52 +28,19 @@ single service
 ```javascript
 
 $(function() {
-    var rpc = json.service("foo.php", function(error) {
-        alert(error.message);
-    });
-
-    rpc(function(foo) {
+    rpc({
+        url: "foo.php",
+        error: function(error) {
+            alert(error.message);
+        }
+        debug: function(json, which) {
+            console.log(which + ': ' + JSON.stringify(json));
+        }
+    })(function(foo) {
         // now here you can access methods from Foo class
         foo.ping("Hello")(function(response) {
             alert(response);
         });
-    });
-
-});
-```
-
-multi service
-
-```javascript
-
-$(function() {
-    json.multi_service(["foo.php", "bar.php"], function(error) {
-        alert(error.message);
-    })(function(foo, bar) {
-
-        foo.get_user("<firstName>", "<lasteName>")(function(user) {
-            foo.get_content_list(user.id)(function(list) {
-                var ul $('ul#users');
-                $.each(list, function(i, element) {
-                    ul.append('<li>' + element.name + '</li>');
-                });
-            });
-        });
-
-        bar.get_product_list()(function(products) {
-            $.each(products, function(product) {
-                if (product.status == "obsolate") {
-                    bar.remove_product(product.id)(function(success) {
-                        if (success) {
-                            console.log("product '" + product.name + "' removed");
-                        } else {
-                            console.log("Error removing product '" + product.name + "'");
-                        }
-                    });
-                }
-            });
-        });
-
     });
 });
 ```
@@ -87,7 +54,7 @@ Javascript part use [jQuery library][2]
 
  Licensed under [GNU GPL Version 3 license][3]
 
- Copyright (c) 2011 [Jakub Jankiewicz][4] 
+ Copyright (c) 2011 [Jakub Jankiewicz][4]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
