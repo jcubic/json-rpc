@@ -23,8 +23,6 @@ handle_json_rpc(new Foo());
 
 ## Client
 
-single service
-
 ```javascript
 
 $(function() {
