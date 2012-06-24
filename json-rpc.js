@@ -19,20 +19,20 @@
 
 var rpc = (function() {
     function rpc(url, id, method, params, success, error, debug) {
-		var request  = {
+        var request  = {
             'version': '1.1', 'method': method,
             'params': params, 'id': id
-		};
-		if (debug && debug.constructor == Function) {
-			debug(request, 'request');
-		}
+        };
+        if (debug && debug.constructor === Function) {
+            debug(request, 'request');
+        }
         return $.ajax({
             url: url,
             data: JSON.stringify(request),
-            success: debug && debug.constructor == Function ? function(response) {
-				debug(response, 'response');
-				success(response);
-			} : success,
+            success: debug && debug.constructor === Function ? function(response) {
+                debug(response, 'response');
+                success(response);
+            } : success,
             error: error,
             accepts: 'application/json',
             contentType: 'application/json',
@@ -41,50 +41,50 @@ var rpc = (function() {
             cache: false,
             //timeout: 1,
             type: 'POST'});
-    };
+    }
     return function(options) {
         var id = 1;
         function ajax_error(jxhr, status, thrown) {
-			if (jxhr.readyState != 0 || options.errorOnAbort) {
-				var message;
-				if (!thrown) {
-					message = jxhr.status + ' ' + jxhr.statusText;
-				} else {
-					message = thrown;
-				}
-				message = 'AJAX Error: "' + message + '"';
-				if (options.error) {
-					options.error({
-						message: message,
-						code: 300
-					});
-				} else {
-					throw message;
-				}
-			}
+            if (jxhr.readyState !== 0 || options.errorOnAbort) {
+                var message;
+                if (!thrown) {
+                    message = jxhr.status + ' ' + jxhr.statusText;
+                } else {
+                    message = thrown;
+                }
+                message = 'AJAX Error: "' + message + '"';
+                if (options.error) {
+                    options.error({
+                        message: message,
+                        code: 300
+                    });
+                } else {
+                    throw message;
+                }
+            }
         }
         function rpc_wrapper(method) {
             return function(/* args */) {
                 var args = Array.prototype.slice.call(arguments);
                 return function(continuation) {
                     rpc(options.url, id++, method, args, function(resp) {
-						if (!resp) {
-							var message = "No response from method `" +
-								method + "'";
-							if (options.error) {
-								options.error({
-									code: 301,
-									message: message
-								});
-							} else {
-								throw message;
-							}
-						} else if (resp.error) {
-							if (options.error) {
-								options.error(resp.error);
-							} else {
-								throw resp.error.message;
-							}
+                        if (!resp) {
+                            var message = "No response from method `" +
+                                method + "'";
+                            if (options.error) {
+                                options.error({
+                                    code: 301,
+                                    message: message
+                                });
+                            } else {
+                                throw message;
+                            }
+                        } else if (resp.error) {
+                            if (options.error) {
+                                options.error(resp.error);
+                            } else {
+                                throw resp.error.message;
+                            }
                         } else {
                             continuation(resp.result);
                         }
@@ -94,22 +94,23 @@ var rpc = (function() {
         }
         return function(continuation) {
             rpc(options.url, id++, 'system.describe', null, function(response) {
-				if (!response) {
-					if (options.error) {
-						var message = "No response from `system.describe' method";
-						options.error({
-							code: 301,
-							message: message
-						});
-					} else {
-						throw message;
-					}
-				} else if (response.error) {
+                var message;
+                if (!response) {
                     if (options.error) {
-						options.error(response.error);
-					} else {
-						throw response.error.message;
-					}
+                        message = "No response from `system.describe' method";
+                        options.error({
+                            code: 301,
+                            message: message
+                        });
+                    } else {
+                        throw message;
+                    }
+                } else if (response.error) {
+                    if (options.error) {
+                        options.error(response.error);
+                    } else {
+                        throw response.error.message;
+                    }
                 } else {
                     var service = {};
                     $.each(response.procs, function(i, proc) {
