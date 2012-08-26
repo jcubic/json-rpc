@@ -40,6 +40,32 @@
   public static $test_documentation = "doc string";
   }
 */
+// ----------------------------------------------------------------------------
+error_reporting(0);
+set_error_handler('error_handler');
+ini_set('display_errors', 1);
+ini_set('track_errors', 1);
+ob_start();
+function error_handler($err, $message, $file, $line) {
+    global $stop;
+    $stop = true;
+    $content = file($file);
+    header('Content-Type: application/json');
+    $id = extract_id(); // don't need to parse
+    $error = array(
+       "code" => 100,
+       "message" => "Server error",
+       "error" => array(
+          "name" => "PHPErorr",
+          "code" => $err,
+          "message" => $message,
+          "file" => $file,
+          "at" => $line,
+          "line" => $content[$line-1]));
+    ob_end_clean();
+    echo response(null, $id, $error);
+}
+// ----------------------------------------------------------------------------
 
 class JsonRpcExeption extends Exception {
     function __construct($code, $message) {
@@ -140,25 +166,6 @@ function service_description($object) {
 }
 
 // ----------------------------------------------------------------------------
-function error_handler($err, $message, $file, $line) {
-    $content = file($file);
-    header('Content-Type: application/json');
-    $id = extract_id(); // don't need to parse
-    $error = array(
-       "code" => 100,
-       "message" => "Server error",
-       "error" => array(
-          "name" => "PHPErorr",
-          "code" => $err,
-          "message" => $message,
-          "file" => $file,
-          "at" => $line,
-          "line" => $content[$line-1]));
-    echo response(null, $id, $error);
-    exit;
-}
-
-// ----------------------------------------------------------------------------
 function get_json_request() {
     $request = get_raw_post_data();
     /*
@@ -181,13 +188,8 @@ function get_json_request() {
     }
     return $request;
 }
-
 // ----------------------------------------------------------------------------
 function handle_json_rpc($object) {
-    ini_set('display_errors', 1);
-    ini_set('track_errors', 1);
-    error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
-    set_error_handler('error_handler');
     try {
         $input = get_json_request();
 
@@ -232,6 +234,7 @@ function handle_json_rpc($object) {
         if (strcmp($method, "system.describe") == 0) {
             echo json_encode(service_description($object));
         } else if (!in_array($method, $methods)) {
+            echo '[[2';
             $msg = "Procedure `" . $method . "' not found";
             throw new JsonRpcExeption(104, $msg);
         } else {
