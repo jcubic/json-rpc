@@ -41,7 +41,6 @@
   }
 */
 // ----------------------------------------------------------------------------
-error_reporting(0);
 set_error_handler('error_handler');
 ini_set('display_errors', 1);
 ini_set('track_errors', 1);
@@ -49,7 +48,7 @@ ob_start();
 function error_handler($err, $message, $file, $line) {
     global $stop;
     $stop = true;
-    $content = file($file);
+    $content = explode("\n", file_get_contents($file));
     header('Content-Type: application/json');
     $id = extract_id(); // don't need to parse
     $error = array(
@@ -64,6 +63,7 @@ function error_handler($err, $message, $file, $line) {
           "line" => $content[$line-1]));
     ob_end_clean();
     echo response(null, $id, $error);
+    exit();
 }
 // ----------------------------------------------------------------------------
 
@@ -145,21 +145,40 @@ function extract_id() {
     }
 }
 // ----------------------------------------------------------------------------
+function currentURL() {
+    $pageURL = 'http';
+    if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") {
+        $pageURL .= "s";
+    }
+    $pageURL .= "://";
+    if ($_SERVER["SERVER_PORT"] != "80") {
+        $pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+    } else {
+        $pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+    }
+    return $pageURL;
+}
+// ----------------------------------------------------------------------------
 function service_description($object) {
-    $class = get_class($object);
-    $methods = get_class_methods($class);
+    $class_name = get_class($object);
+    $methods = get_class_methods($class_name);
     $service = array("sdversion" => "1.0",
                      "name" => "DemoService",
-                     "address" => $_SERVER['PHP_SELF'],
-                     "id" => "urn:md5:" . md5($_SERVER['PHP_SELF']));
-    $static = get_class_vars($class);
-    foreach ($methods as $method) {
-        $proc = array("name" => $method);
+                     "address" => currentURL(),
+                     "id" => "urn:md5:" . md5(currentURL()));
+    $static = get_class_vars($class_name);
+    foreach ($methods as $method_name) {
+        $proc = array("name" => $method_name);
+        $method = new ReflectionMethod($class_name, $method_name);
+        $params = array();
+        foreach ($method->getParameters() as $param) {
+            $params[] = $param->name;
+        }
+        $proc['params'] = $params;
         $help_str_name = $method . "_documentation";
         if (array_key_exists($help_str_name, $static)) {
             $proc['help'] = $static[$help_str_name];
         }
-
         $service['procs'][] = $proc;
     }
     return $service;
@@ -168,11 +187,6 @@ function service_description($object) {
 // ----------------------------------------------------------------------------
 function get_json_request() {
     $request = get_raw_post_data();
-    /*
-    if ($request == '') {
-        $input = file_get_contents('php://input');
-    }
-    */
 	if ($request == "") {
         throw new JsonRpcExeption(101, "Parse Error: no data");
     }
@@ -263,6 +277,7 @@ function handle_json_rpc($object) {
         $msg = $e->getMessage();
         echo response(null, $id, array("code"=>200, "message"=>$msg));
     }
+    ob_end_flush();
 }
 
 ?>
