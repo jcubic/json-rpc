@@ -175,7 +175,7 @@ function service_description($object) {
             $params[] = $param->name;
         }
         $proc['params'] = $params;
-        $help_str_name = $method . "_documentation";
+        $help_str_name = $method_name . "_documentation";
         if (array_key_exists($help_str_name, $static)) {
             $proc['help'] = $static[$help_str_name];
         }

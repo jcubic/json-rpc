@@ -119,7 +119,7 @@ var rpc = (function() {
                             return "#<rpc-method: `" + proc.name + "'>";
                         };
                     });
-                    continuation(service);
+                    continuation(service, response);
                 }
             }, ajax_error, options.debug);
         };
