@@ -248,7 +248,6 @@ function handle_json_rpc($object) {
         if (strcmp($method, "system.describe") == 0) {
             echo json_encode(service_description($object));
         } else if (!in_array($method, $methods)) {
-            echo '[[2';
             $msg = "Procedure `" . $method . "' not found";
             throw new JsonRpcExeption(104, $msg);
         } else {
