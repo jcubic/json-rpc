@@ -247,20 +247,26 @@ function handle_json_rpc($object) {
         $methods = get_class_methods($class);
         if (strcmp($method, "system.describe") == 0) {
             echo json_encode(service_description($object));
-        } else if (!in_array($method, $methods)) {
+        } else if (!in_array($method, $methods) && !in_array("__call", $methods)) {
+            // __call will be called for any method that's missing
             $msg = "Procedure `" . $method . "' not found";
             throw new JsonRpcExeption(104, $msg);
         } else {
-            $method_object = new ReflectionMethod($class, $method);
-            $num_got = count($params);
-            $num_expect = $method_object->getNumberOfParameters();
-            if ($num_got != $num_expect) {
-                $msg = "Wrong number of parameters. Got $num_got expect $num_expect";
-                throw new JsonRpcExeption(105, $msg);
-            } else {
-                //throw new Exception('x -> ' . json_encode($params));
+            if (in_array("__call", $methods) && !in_array($method, $methods)) {
                 $result = call_user_func_array(array($object, $method), $params);
                 echo response($result, $id, null);
+            } else {
+                $method_object = new ReflectionMethod($class, $method);
+                $num_got = count($params);
+                $num_expect = $method_object->getNumberOfParameters();
+                if ($num_got != $num_expect) {
+                    $msg = "Wrong number of parameters. Got $num_got expect $num_expect";
+                    throw new JsonRpcExeption(105, $msg);
+                } else {
+                    //throw new Exception('x -> ' . json_encode($params));
+                    $result = call_user_func_array(array($object, $method), $params);
+                    echo response($result, $id, null);
+                }
             }
         }
     } catch (JsonRpcExeption $e) {
