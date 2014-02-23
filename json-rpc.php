@@ -241,7 +241,7 @@ function handle_json_rpc($object) {
                 $params = get_object_vars($params);
             }
         }
-		
+
         // call Service Method
         $class = get_class($object);
         $methods = get_class_methods($class);
@@ -260,7 +260,8 @@ function handle_json_rpc($object) {
                 $num_got = count($params);
                 $num_expect = $method_object->getNumberOfParameters();
                 if ($num_got != $num_expect) {
-                    $msg = "Wrong number of parameters. Got $num_got expect $num_expect";
+                    $msg = "Wrong number of parameters in `$method' method. Got " .
+                        "$num_got expect $num_expect";
                     throw new JsonRpcExeption(105, $msg);
                 } else {
                     //throw new Exception('x -> ' . json_encode($params));
