@@ -179,13 +179,16 @@ function service_description($object) {
         }
         $service['procs'][] = $proc;
     }
+    $service['procs'][] = array(
+        'name' => 'help'
+    );
     return $service;
 }
 
 // ----------------------------------------------------------------------------
 function get_json_request() {
     $request = get_raw_post_data();
-	if ($request == "") {
+    if ($request == "") {
         throw new JsonRpcExeption(101, "Parse Error: no data");
     }
     $encoding = mb_detect_encoding($request, 'auto');
@@ -199,6 +202,13 @@ function get_json_request() {
         throw new JsonRpcExeption(101, "Parse Error: $error");
     }
     return $request;
+}
+// ----------------------------------------------------------------------------
+function canCall($args_length, $class, $method) {
+    $method_object = new ReflectionMethod($class, $method);
+    $num_expect = $method_object->getNumberOfParameters();
+    $num_expect2 = $method_object->getNumberOfRequiredParameters();
+    return $args_length == $num_expect || $args_length == $num_expect2;
 }
 // ----------------------------------------------------------------------------
 function handle_json_rpc($object) {
@@ -239,34 +249,63 @@ function handle_json_rpc($object) {
                 $params = get_object_vars($params);
             }
         }
-
         // call Service Method
         $class = get_class($object);
         $methods = get_class_methods($class);
+        $num_got = count($params);
         if (strcmp($method, "system.describe") == 0) {
             echo json_encode(service_description($object));
-        } else if (!in_array($method, $methods) && !in_array("__call", $methods)) {
-            // __call will be called for any method that's missing
-            $msg = "Procedure `" . $method . "' not found";
-            throw new JsonRpcExeption(104, $msg);
         } else {
-            if (in_array("__call", $methods) && !in_array($method, $methods)) {
-                $result = call_user_func_array(array($object, $method), $params);
-                echo response($result, $id, null);
-            } else {
+            $exist = in_array($method, $methods);
+            if ($exist) {
                 $method_object = new ReflectionMethod($class, $method);
-                $num_got = count($params);
                 $num_expect = $method_object->getNumberOfParameters();
                 $num_expect2 = $method_object->getNumberOfRequiredParameters();
-                if (!($num_got == $num_expect && $num_got == $num_expect2)) {
-                    $msg = "Wrong number of parameters in `$method' method. Got " .
-                        "$num_got expect $num_expect";
-                    throw new JsonRpcExeption(105, $msg);
+                $can_call = $num_got == $num_expect || $num_got == $num_expect2;
+            } else {
+                $can_call = false;
+            }
+            if ($method == 'help' && (!$exist || !$can_call)) {
+                if (count($params) > 0) {
+                    if (!in_array($params[0], $methods)) {
+                        $msg = 'There is no ' . $params[0] . ' method';
+                        throw new JsonRpcExeption(108, $msg);
+                    } else {
+                        $static = get_class_vars($class);
+                        $help_str_name = $params[0] . "_documentation";
+                        //throw new Exception(implode(", ", $static));
+                        if (array_key_exists($help_str_name, $static)) {
+                            echo response($static[$help_str_name], $id, null);
+                        } else {
+                            $msg = $method . " method has no documentation";
+                            throw new JsonRpcExeption(107, $msg);
+                        }
+                    }
                 } else {
-                    //throw new Exception('x -> ' . json_encode($params));
+                    $url = "http://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
+                    $msg = 'PHP JSON-RPC - in "' . $url . "\"\n";
+                    $msg .= "class \"$class\" has methods: " .
+                        implode(", ", array_slice($methods, 0, -1)) .
+                        " and " .  $methods[count($methods)-1] . ".";
+                    echo response($msg, $id, null);
+                }
+            } else if (!$exist) {
+                if (in_array("__call", $methods)) {
                     $result = call_user_func_array(array($object, $method), $params);
                     echo response($result, $id, null);
+                } else {
+                    // __call will be called for any method that's missing
+                    $msg = "Procedure `" . $method . "' not found";
+                    throw new JsonRpcExeption(104, $msg);
                 }
+            } else if (!$can_call) {
+                $msg = "Wrong number of parameters in `$method' method. Got " .
+                       "$num_got expect $num_expect";
+                throw new JsonRpcExeption(105, $msg);
+            } else {
+                //throw new Exception('x -> ' . json_encode($params));
+                $result = call_user_func_array(array($object, $method), $params);
+                echo response($result, $id, null);
             }
         }
     } catch (JsonRpcExeption $e) {
