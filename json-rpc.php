@@ -41,8 +41,11 @@
   }
 */
 // ----------------------------------------------------------------------------
-set_error_handler('error_handler');
-ob_start();
+function handle_errors() {
+    set_error_handler('error_handler');
+    ob_start();
+}
+// ----------------------------------------------------------------------------
 function error_handler($err, $message, $file, $line) {
     global $stop;
     $stop = true;
