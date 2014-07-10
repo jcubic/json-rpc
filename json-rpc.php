@@ -42,8 +42,6 @@
 */
 // ----------------------------------------------------------------------------
 set_error_handler('error_handler');
-ini_set('display_errors', 1);
-ini_set('track_errors', 1);
 ob_start();
 function error_handler($err, $message, $file, $line) {
     global $stop;
@@ -259,7 +257,8 @@ function handle_json_rpc($object) {
                 $method_object = new ReflectionMethod($class, $method);
                 $num_got = count($params);
                 $num_expect = $method_object->getNumberOfParameters();
-                if ($num_got != $num_expect) {
+                $num_expect2 = $method_object->getNumberOfRequiredParameters();
+                if (!($num_got == $num_expect && $num_got == $num_expect2)) {
                     $msg = "Wrong number of parameters in `$method' method. Got " .
                         "$num_got expect $num_expect";
                     throw new JsonRpcExeption(105, $msg);
