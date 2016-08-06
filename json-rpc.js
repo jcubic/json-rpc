@@ -1,6 +1,6 @@
 /*
  *  JSON-RPC Client implementaion in Javascript
- *  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl> 
+ *  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,14 +29,24 @@ var rpc = (function() {
         return $.ajax({
             url: url,
             data: JSON.stringify(request),
-            success: debug && debug.constructor === Function ? function(response) {
-                debug(response, 'response');
+            success: function(response, status, jxhr) {
+                if (debug && debug.constructor === Function) {
+                    debug(response, 'response');
+                }
+                try {
+                    response = JSON.parse(response);
+                } catch(e) {
+                    response = response.replace(/<[^>]+>/g, '').
+                        replace(/^[\n\s]+|[\n\s]+$/g, '');
+                    error(jxhr, status, response);
+                    return;
+                }
                 success(response);
-            } : success,
+            },
             error: error,
             accepts: 'application/json',
             contentType: 'application/json',
-            dataType: 'json',
+            dataType: 'text',
             async: true,
             cache: false,
             //timeout: 1,
@@ -45,10 +55,14 @@ var rpc = (function() {
     return function(options) {
         var id = 1;
         function ajax_error(jxhr, status, thrown) {
-            if (jxhr.readyState !== 0 || options.errorOnAbort) {
+            if (status != 'abort' || options.errorOnAbort) {
                 var message;
                 if (!thrown) {
-                    message = jxhr.status + ' ' + jxhr.statusText;
+                    if (jxhr.status == 0 && jxhr.statusText == 'error') {
+                        message = 'DNS Failure';
+                    } else {
+                        message = jxhr.status + ' ' + jxhr.statusText;
+                    }
                 } else {
                     message = thrown;
                 }
@@ -79,14 +93,8 @@ var rpc = (function() {
                             } else {
                                 throw message;
                             }
-                        } else if (resp.error) {
-                            if (options.error) {
-                                options.error(resp.error);
-                            } else {
-                                throw resp.error.message;
-                            }
                         } else {
-                            continuation(resp.result);
+                            continuation(resp.error, resp.result);
                         }
                     }, ajax_error, options.debug);
                 };
