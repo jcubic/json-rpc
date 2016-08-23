@@ -51,13 +51,13 @@ Javascript part use [jQuery library][2]
 
 ## License
 
- Licensed under [GNU GPL Version 3 license][3]
+ Released under the [MIT license][3]
 
  Copyright (c) 2011 [Jakub Jankiewicz][4]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
 [2]: http://jquery.com/ "jQuery library"
-[3]: http://www.gnu.org/copyleft/gpl.html "GNU GPL Version 3 license"
+[3]: https://opensource.org/licenses/MIT "The MIT License (MIT)"
 [4]: http://jcubic.pl "Jakub Jankiewicz"
 
