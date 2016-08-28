@@ -30,7 +30,7 @@ $(function() {
         url: "foo.php",
         error: function(error) {
             alert(error.message);
-        }
+        },
         // errorOnAbort: true,
         debug: function(json, which) {
             console.log(which + ': ' + JSON.stringify(json));
