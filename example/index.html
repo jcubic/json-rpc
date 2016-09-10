@@ -1,24 +1,11 @@
 <body>
     
-    <script src="https://code.jquery.com/jquery-git.min.js"></script>
-    <script src="http://localhost:6060/json-rpc.js"></script>
+    <script src="/json-rpc.js"></script>
     <script>
-    $(function() {
-    rpc({
-        url: "http://localhost:6060/server.php",
-        error: function(error) {
-            alert(error.message);
-        },
-        // errorOnAbort: true,
-        debug: function(json, which) {
-            console.log(which + ': ' + JSON.stringify(json));
-        }
-    })(function(Server) {
-        // now here you can access methods from Foo class
-        Server.ping("test")(function(response) {
-            alert(response);
-        });
-    });
-});
-</script>
+    	jsonrpc.call('/example/server.php','index',['your-name'], function(response){
+
+    			alert(response.result);
+    			console.log(response);
+    	});
+	</script>
 </body>
