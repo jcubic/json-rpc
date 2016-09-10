@@ -11,16 +11,16 @@
   with instance of this class
 
   <?php
-  require('json_rpc.php');
-  class Server {
-    public function test($message) {
-      return "you send " . $message;
+   require('../json-rpc.php');
+   class SampleClass {
+     public function index($name) {
+      return "Hello".$name;
+       }
     }
-  }
 
-  handle_json_rpc(new Server());
-  ?>
+     handle_json_rpc(new SampleClass());
 
+ 
   you can provide documentations for methods
   by adding static field:
 
