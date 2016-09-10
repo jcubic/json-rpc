@@ -117,7 +117,7 @@ function response($result, $id, $error) {
     if ($error) {
         $error['name'] = 'JSONRPCError';
     }
-    return json_encode(array("jsonrpc" => "2.0",
+    return json_encode(array("jsonrpc" => "1.1",
                              'result' => $result,
                              'id' => $id,
                              'error'=> $error));
