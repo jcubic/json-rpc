@@ -3,51 +3,28 @@
 This is JSON-RPC implementaion, server in php and client in javascript
 based on [version 1.1 of the Specification][1]
 
-## Server
-
-```php
-<?php
-require('json-rpc.php');
-
-class Foo {
-    function ping($str) {
-        return "pong '$str'";
+##Server 
+```<?php
+   require('../json-rpc.php');
+   class SampleClass {
+     public function index($name) {
+      return "Hello".$name;
+       }
     }
-}
 
-handle_json_rpc(new Foo());
-
-?>
+     handle_json_rpc(new SampleClass());
 ```
+##Client
+       jsonrpc.call('/example/server.php','index',['your-name'], function(response){
 
-
-## Client
-
-```javascript
-
-$(function() {
-    rpc({
-        url: "foo.php",
-        error: function(error) {
-            alert(error.message);
-        },
-        // errorOnAbort: true,
-        debug: function(json, which) {
-            console.log(which + ': ' + JSON.stringify(json));
-        }
-    })(function(foo) {
-        // now here you can access methods from Foo class
-        foo.ping("Hello")(function(response) {
-            alert(response);
+                alert(response.result);
+                console.log(response);
         });
-    });
-});
-```
 
-## Dependencies
-
-Javascript part use [jQuery library][2]
-
+##Use
+To run sample example provided 
+Run a server in the root folder. 
+Example with php development server php -S localhost:6060
 
 ## License
 
@@ -57,7 +34,6 @@ Javascript part use [jQuery library][2]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
-[2]: http://jquery.com/ "jQuery library"
-[3]: https://opensource.org/licenses/MIT "The MIT License (MIT)"
-[4]: http://jcubic.pl "Jakub Jankiewicz"
+[2]: https://opensource.org/licenses/MIT "The MIT License (MIT)"
+[3]: http://jcubic.pl "Jakub Jankiewicz"
 

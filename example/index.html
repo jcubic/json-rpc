@@ -1,0 +1,11 @@
+<body>
+    
+    <script src="/json-rpc.js"></script>
+    <script>
+    	jsonrpc.call('/example/server.php','index',['your-name'], function(response){
+
+    			alert(response.result);
+    			console.log(response);
+    	});
+	</script>
+</body>

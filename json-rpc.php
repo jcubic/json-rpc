@@ -11,16 +11,16 @@
   with instance of this class
 
   <?php
-  require('json_rpc.php');
-  class Server {
-    public function test($message) {
-      return "you send " . $message;
+   require('../json-rpc.php');
+   class SampleClass {
+     public function index($name) {
+      return "Hello".$name;
+       }
     }
-  }
 
-  handle_json_rpc(new Server());
-  ?>
+     handle_json_rpc(new SampleClass());
 
+ 
   you can provide documentations for methods
   by adding static field:
 
@@ -30,12 +30,14 @@
   }
 */
 // ----------------------------------------------------------------------------
-function handle_errors() {
+function handle_errors()
+{
     set_error_handler('error_handler');
     ob_start();
 }
 // ----------------------------------------------------------------------------
-function error_handler($err, $message, $file, $line) {
+function error_handler($err, $message, $file, $line)
+{
     global $stop;
     $stop = true;
     $content = explode("\n", file_get_contents($file));
@@ -57,34 +59,39 @@ function error_handler($err, $message, $file, $line) {
 }
 // ----------------------------------------------------------------------------
 
-class JsonRpcExeption extends Exception {
-    function __construct($code, $message) {
+class JsonRpcExeption extends Exception
+{
+    function __construct($code, $message)
+    {
         $this->code = $code;
         Exception::__construct($message);
     }
-    function code() {
+    function code()
+    {
         return $this->code;
     }
 }
 
 // ----------------------------------------------------------------------------
-function json_error() {
+function json_error()
+{
     switch (json_last_error()) {
-    case JSON_ERROR_NONE:
-        return 'No error has occurred';
-    case JSON_ERROR_DEPTH:
-        return 'The maximum stack depth has been exceeded';
-    case JSON_ERROR_CTRL_CHAR:
-        return 'Control character error, possibly incorrectly encoded';
-    case JSON_ERROR_SYNTAX:
-        return 'Syntax error';
-    case JSON_ERROR_UTF8:
-        return 'Malformed UTF-8 characters, possibly incorrectly encoded';
+        case JSON_ERROR_NONE:
+            return 'No error has occurred';
+        case JSON_ERROR_DEPTH:
+            return 'The maximum stack depth has been exceeded';
+        case JSON_ERROR_CTRL_CHAR:
+            return 'Control character error, possibly incorrectly encoded';
+        case JSON_ERROR_SYNTAX:
+            return 'Syntax error';
+        case JSON_ERROR_UTF8:
+            return 'Malformed UTF-8 characters, possibly incorrectly encoded';
     }
 }
 
 // ----------------------------------------------------------------------------
-function get_raw_post_data() {
+function get_raw_post_data()
+{
     if (isset($GLOBALS['HTTP_RAW_POST_DATA'])) {
         return $GLOBALS['HTTP_RAW_POST_DATA'];
     } else {
@@ -94,14 +101,16 @@ function get_raw_post_data() {
 
 // ----------------------------------------------------------------------------
 // check if object has field
-function has_field($object, $field) {
+function has_field($object, $field)
+{
     //return in_array($field, array_keys(get_object_vars($object)));
     return array_key_exists($field, get_object_vars($object));
 }
 
 // ----------------------------------------------------------------------------
 // return object field if exist otherwise return default value
-function get_field($object, $field, $default) {
+function get_field($object, $field, $default)
+{
     $array = get_object_vars($object);
     if (isset($array[$field])) {
         return $array[$field];
@@ -113,11 +122,12 @@ function get_field($object, $field, $default) {
 
 // ----------------------------------------------------------------------------
 //create json-rpc response
-function response($result, $id, $error) {
+function response($result, $id, $error)
+{
     if ($error) {
         $error['name'] = 'JSONRPCError';
     }
-    return json_encode(array("jsonrpc" => "2.0",
+    return json_encode(array("jsonrpc" => "1.1",
                              'result' => $result,
                              'id' => $id,
                              'error'=> $error));
@@ -125,7 +135,8 @@ function response($result, $id, $error) {
 
 // ----------------------------------------------------------------------------
 // try to extract id from broken json
-function extract_id() {
+function extract_id()
+{
     $regex = '/[\'"]id[\'"] *: *([0-9]*)/';
     $raw_data = get_raw_post_data();
     if (preg_match($regex, $raw_data, $m)) {
@@ -135,7 +146,8 @@ function extract_id() {
     }
 }
 // ----------------------------------------------------------------------------
-function currentURL() {
+function currentURL()
+{
     $pageURL = 'http';
     if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") {
         $pageURL .= "s";
@@ -149,7 +161,8 @@ function currentURL() {
     return $pageURL;
 }
 // ----------------------------------------------------------------------------
-function service_description($object) {
+function service_description($object)
+{
     $class_name = get_class($object);
     $methods = get_class_methods($class_name);
     $service = array("sdversion" => "1.0",
@@ -178,7 +191,8 @@ function service_description($object) {
 }
 
 // ----------------------------------------------------------------------------
-function get_json_request() {
+function get_json_request()
+{
     $request = get_raw_post_data();
     if ($request == "") {
         throw new JsonRpcExeption(101, "Parse Error: no data");
@@ -189,21 +203,23 @@ function get_json_request() {
         $request = iconv($encoding, 'UTF-8', $request);
     }
     $request = json_decode($request);
-    if ($request == NULL) { // parse error
+    if ($request == null) { // parse error
         $error = json_error();
         throw new JsonRpcExeption(101, "Parse Error: $error");
     }
     return $request;
 }
 // ----------------------------------------------------------------------------
-function canCall($args_length, $class, $method) {
+function canCall($args_length, $class, $method)
+{
     $method_object = new ReflectionMethod($class, $method);
     $num_expect = $method_object->getNumberOfParameters();
     $num_expect2 = $method_object->getNumberOfRequiredParameters();
     return $args_length == $num_expect || $args_length == $num_expect2;
 }
 // ----------------------------------------------------------------------------
-function handle_json_rpc($object) {
+function handle_json_rpc($object)
+{
     try {
         $input = get_json_request();
 
@@ -220,12 +236,12 @@ function handle_json_rpc($object) {
             }
             if (!$method) {
                 $error = "no method";
-            } else if (!$id) {
+            } elseif (!$id) {
                 $error = "no id";
             } else {
                 $error = "unknown reason";
             }
-            throw new JsonRpcExeption(103,  "Invalid Request: $error");
+            throw new JsonRpcExeption(103, "Invalid Request: $error");
             //": " . $GLOBALS['HTTP_RAW_POST_DATA']));
         }
 
@@ -281,7 +297,7 @@ function handle_json_rpc($object) {
                         " and " .  $methods[count($methods)-1] . ".";
                     echo response($msg, $id, null);
                 }
-            } else if (!$exist) {
+            } elseif (!$exist) {
                 if (in_array("__call", $methods)) {
                     $result = call_user_func_array(array($object, $method), $params);
                     echo response($result, $id, null);
@@ -290,7 +306,7 @@ function handle_json_rpc($object) {
                     $msg = "Procedure `" . $method . "' not found";
                     throw new JsonRpcExeption(104, $msg);
                 }
-            } else if (!$can_call) {
+            } elseif (!$can_call) {
                 $msg = "Wrong number of parameters in `$method' method. Got " .
                        "$num_got expect $num_expect";
                 throw new JsonRpcExeption(105, $msg);
@@ -315,5 +331,3 @@ function handle_json_rpc($object) {
     }
     ob_end_flush();
 }
-
-?>
