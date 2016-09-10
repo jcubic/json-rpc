@@ -15,15 +15,17 @@ based on [version 1.1 of the Specification][1]
      handle_json_rpc(new SampleClass());
 ```
 ##Client
-      ```  jsonrpc.call('/example/server.php','index',['your-name'], function(response){
+       jsonrpc.call('/example/server.php','index',['your-name'], function(response){
 
                 alert(response.result);
                 console.log(response);
-        });```
+        });
 
 ##Use
 To run sample example provided 
-Run a server in the root folder. example with php development server php -S localhost:6060
+Run a server in the root folder. 
+Example with php development server php -S localhost:6060
+
 ## License
 
  Released under the [MIT license][3]
