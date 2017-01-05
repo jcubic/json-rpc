@@ -203,8 +203,18 @@ function canCall($args_length, $class, $method) {
     return $args_length == $num_expect || $args_length == $num_expect2;
 }
 // ----------------------------------------------------------------------------
-function handle_json_rpc($object) {
+function handle_json_rpc($object, $csrf = false) {
     try {
+        if ($csrf) {
+            session_start();
+            if (isset($_SESSION['delete_customer_token'])) {
+                $request_token = $_SESSION['delete_customer_token'];
+            }
+            $token = md5(uniqid());
+            $_SESSION['delete_customer_token'] = $token;
+            $_SESSION['count'] = isset($_SESSION['count']) ? $_SESSION['count'] : 0;
+            session_write_close();
+        }
         $input = get_json_request();
 
         header('Content-Type: application/json');
@@ -241,12 +251,20 @@ function handle_json_rpc($object) {
                 $params = get_object_vars($params);
             }
         }
+        if ($csrf) {
+            if ($_SESSION['count']++ > 0 && $request_token != $params[0]) {
+                throw new Exception("Invalid CSRF Token");
+            }
+            $params = array_slice($params, 1);
+        }
         // call Service Method
         $class = get_class($object);
         $methods = get_class_methods($class);
         $num_got = count($params);
         if (strcmp($method, "system.describe") == 0) {
-            echo json_encode(service_description($object));
+            $response = service_description($object);
+            $response['csrf'] = $token;
+            echo json_encode($response);
         } else {
             $exist = in_array($method, $methods);
             if ($exist) {
@@ -284,6 +302,9 @@ function handle_json_rpc($object) {
             } else if (!$exist) {
                 if (in_array("__call", $methods)) {
                     $result = call_user_func_array(array($object, $method), $params);
+                    if ($csrf) {
+                        $result = array($token, $result);
+                    }
                     echo response($result, $id, null);
                 } else {
                     // __call will be called for any method that's missing
@@ -297,6 +318,9 @@ function handle_json_rpc($object) {
             } else {
                 //throw new Exception('x -> ' . json_encode($params));
                 $result = call_user_func_array(array($object, $method), $params);
+                if ($csrf) {
+                    $result = array($token, $result);
+                }
                 echo response($result, $id, null);
             }
         }
