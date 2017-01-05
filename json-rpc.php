@@ -203,7 +203,7 @@ function canCall($args_length, $class, $method) {
     return $args_length == $num_expect || $args_length == $num_expect2;
 }
 // ----------------------------------------------------------------------------
-function handle_json_rpc($object, $csrf = false) {
+function handle_json_rpc($object, $csrf = NULL) {
     try {
         if ($csrf) {
             session_start();
@@ -211,9 +211,9 @@ function handle_json_rpc($object, $csrf = false) {
                 $request_token = $_SESSION['delete_customer_token'];
             }
             $token = md5(uniqid());
+            header($csrf . ":" . $token);
             $_SESSION['delete_customer_token'] = $token;
             $_SESSION['count'] = isset($_SESSION['count']) ? $_SESSION['count'] : 0;
-            session_write_close();
         }
         $input = get_json_request();
 
@@ -252,10 +252,10 @@ function handle_json_rpc($object, $csrf = false) {
             }
         }
         if ($csrf) {
-            if ($_SESSION['count']++ > 0 && $request_token != $params[0]) {
+            $headers = getallheaders();
+            if ($_SESSION['count']++ > 0 && $request_token != $headers[$csrf]) {
                 throw new Exception("Invalid CSRF Token");
             }
-            $params = array_slice($params, 1);
         }
         // call Service Method
         $class = get_class($object);
@@ -302,9 +302,6 @@ function handle_json_rpc($object, $csrf = false) {
             } else if (!$exist) {
                 if (in_array("__call", $methods)) {
                     $result = call_user_func_array(array($object, $method), $params);
-                    if ($csrf) {
-                        $result = array($token, $result);
-                    }
                     echo response($result, $id, null);
                 } else {
                     // __call will be called for any method that's missing
@@ -318,9 +315,6 @@ function handle_json_rpc($object, $csrf = false) {
             } else {
                 //throw new Exception('x -> ' . json_encode($params));
                 $result = call_user_func_array(array($object, $method), $params);
-                if ($csrf) {
-                    $result = array($token, $result);
-                }
                 echo response($result, $id, null);
             }
         }
