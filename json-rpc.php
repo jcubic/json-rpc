@@ -262,8 +262,8 @@ function handle_json_rpc($object, $csrf = NULL) {
         $methods = get_class_methods($class);
         $num_got = count($params);
         if (strcmp($method, "system.describe") == 0) {
+            throw new JsonRpcExeption(104, "Method not found");
             $response = service_description($object);
-            $response['csrf'] = $token;
             echo json_encode($response);
         } else {
             $exist = in_array($method, $methods);
@@ -322,8 +322,8 @@ function handle_json_rpc($object, $csrf = NULL) {
         // exteption with error code
         $msg = $e->getMessage();
         $code = $e->code();
-        if ($code = 101) { // parse error;
-            $id = extract_id();
+        if ($code == 101) { // parse error;
+            $id = intval(extract_id());
         }
         echo response(null, $id, array("code"=>$code, "message"=>$msg));
     } catch (Exception $e) {
@@ -331,7 +331,7 @@ function handle_json_rpc($object, $csrf = NULL) {
         $msg = $e->getMessage();
         echo response(null, $id, array("code"=>200, "message"=>$msg));
     }
-    ob_end_flush();
+    @ob_end_flush();
 }
 
 ?>
