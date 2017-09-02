@@ -262,7 +262,6 @@ function handle_json_rpc($object, $csrf = NULL) {
         $methods = get_class_methods($class);
         $num_got = count($params);
         if (strcmp($method, "system.describe") == 0) {
-            throw new JsonRpcExeption(104, "Method not found");
             $response = service_description($object);
             echo json_encode($response);
         } else {

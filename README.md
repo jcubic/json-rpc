@@ -44,6 +44,19 @@ $(function() {
 });
 ```
 
+if you prefer to use promises uou can use option `promisify: true`
+
+```
+rpc({
+    url: 'servce.php'.
+    promisify: true
+}).then(function(service) {
+    service.ping("hello").then(function(response) {
+       alert(resonse);
+    });
+});
+```
+
 ## Dependencies
 
 Javascript part use [jQuery library][2]

@@ -1,12 +1,13 @@
-/*
+/**
  *  JSON-RPC Client implementaion in Javascript
  *  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl>
  *
  *  Released under the MIT license
  *
  */
+/* global jQuery */
 
-var rpc = (function() {
+var rpc = (function($) {
     function rpc(url, id, method, params, success, error, debug) {
         var request  = {
             'version': '1.1', 'method': method,
@@ -69,7 +70,7 @@ var rpc = (function() {
         function rpc_wrapper(method) {
             return function(/* args */) {
                 var args = Array.prototype.slice.call(arguments);
-                return function(continuation) {
+                function call(continuation) {
                     rpc(options.url, id++, method, args, function(resp) {
                         if (!resp) {
                             var message = "No response from method `" +
@@ -86,10 +87,33 @@ var rpc = (function() {
                             continuation(resp.error, resp.result);
                         }
                     }, ajax_error, options.debug);
-                };
+                }
+                if (options.promisify) {
+                    return new Promise(function(resolve, reject) {
+                        call(function(error, data) {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                resolve(data);
+                            }
+                        });
+                    });
+                } else {
+                    return call;
+                }
             };
         }
-        return function(continuation) {
+        function make_service(response) {
+            var service = {};
+            $.each(response.procs, function(i, proc) {
+                service[proc.name] = rpc_wrapper(proc.name);
+                service[proc.name].toString = function() {
+                    return "#<rpc-method: `" + proc.name + "'>";
+                };
+            });
+            return service;
+        }
+        function call(continuation) {
             rpc(options.url, id++, 'system.describe', null, function(response) {
                 var message;
                 if (!response) {
@@ -102,23 +126,35 @@ var rpc = (function() {
                     } else {
                         throw message;
                     }
-                } else if (response.error) {
-                    if (options.error) {
-                        options.error(response.error);
-                    } else {
-                        throw response.error.message;
-                    }
                 } else {
-                    var service = {};
-                    $.each(response.procs, function(i, proc) {
-                        service[proc.name] = rpc_wrapper(proc.name);
-                        service[proc.name].toString = function() {
-                            return "#<rpc-method: `" + proc.name + "'>";
-                        };
-                    });
-                    continuation(service, response);
+                    continuation(response);
                 }
             }, ajax_error, options.debug);
-        };
+        }
+        if (options.promisify) {
+            return new Promise(function(resolve, reject) {
+                call(function(response) {
+                    if (response.error) {
+                        reject(response.error);
+                    } else {
+                        resolve(make_service(response));
+                    }
+                });
+            });
+        } else {
+            return function(continuation) {
+                call(function(response) {
+                    if (response.error) {
+                        if (options.error) {
+                            options.error(response.error);
+                        } else {
+                            throw response.error.message;
+                        }
+                    } else {
+                        continuation(make_service(response), response);
+                    }
+                });
+            };
+        }
     };
-})();
+})(jQuery);
