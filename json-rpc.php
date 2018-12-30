@@ -1,7 +1,7 @@
 <?php
 /*
   JSON-RPC Server implemenation
-  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl>
+  Copyright (C) 2009 Jakub T. Jankiewicz <https://jcubic.pl>
 
   Released under the MIT license
 */
@@ -171,9 +171,7 @@ function service_description($object) {
         }
         $service['procs'][] = $proc;
     }
-    $service['procs'][] = array(
-        'name' => 'help'
-    );
+    $service['procs'][] = array();
     return $service;
 }
 

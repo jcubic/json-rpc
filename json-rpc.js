@@ -1,6 +1,6 @@
 /**
  *  JSON-RPC Client implementaion in Javascript
- *  Copyright (C) 2009 Jakub Jankiewicz <http://jcubic.pl>
+ *  Copyright (C) 2009 Jakub T. Jankiewicz <https://jcubic.pl>
  *
  *  Released under the MIT license
  *
