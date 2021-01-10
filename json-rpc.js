@@ -1,24 +1,43 @@
 /**
  *  JSON-RPC Client implementaion in Javascript
- *  Copyright (C) 2009 Jakub T. Jankiewicz <https://jcubic.pl>
+ *  Copyright (C) 2009-2021 Jakub T. Jankiewicz <https://jcubic.pl/me>
  *
  *  Released under the MIT license
  *
  */
-/* global jQuery */
 
-var rpc = (function($) {
+var rpc = (function() {
+    function ajax(request) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(request.type || request.method, request.url, true);
+        xhr.setRequestHeader('Accept', request.accepts);
+        xhr.setRequestHeader('Content-type', request.contentType);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState > 3) {
+                if (xhr.status == 200) {
+                    request.success(xhr.responseText, xhr.statusText, xhr);
+                } else {
+                    request.error(xhr, xhr.statusText);
+                }
+                xhr = null;
+            }
+        };
+        xhr.send(request.data);
+        return xhr;
+    }
+
     function rpc(url, id, method, params, success, error, debug) {
         var request  = {
             'version': '1.1', 'method': method,
             'params': params, 'id': id
         };
+        var data = JSON.stringify(request);
         if (debug && debug.constructor === Function) {
-            debug(request, 'request');
+            debug(data, 'request');
         }
-        return $.ajax({
+        return ajax({
             url: url,
-            data: JSON.stringify(request),
+            data: data,
             success: function(response, status, jxhr) {
                 if (debug && debug.constructor === Function) {
                     debug(response, 'response');
@@ -34,37 +53,26 @@ var rpc = (function($) {
                 success(response);
             },
             error: error,
-            accepts: 'application/json',
-            contentType: 'application/json',
-            dataType: 'text',
-            async: true,
-            cache: false,
-            //timeout: 1,
-            type: 'POST'});
+            type: 'POST'
+        });
     }
     return function(options) {
         var id = 1;
-        function ajax_error(jxhr, status, thrown) {
-            if (status != 'abort' || options.errorOnAbort) {
-                var message;
-                if (!thrown) {
-                    if (jxhr.status == 0 && jxhr.statusText == 'error') {
-                        message = 'DNS Failure';
-                    } else {
-                        message = jxhr.status + ' ' + jxhr.statusText;
-                    }
-                } else {
-                    message = thrown;
-                }
-                message = 'AJAX Error: "' + message + '"';
-                if (options.error) {
-                    options.error({
-                        message: message,
-                        code: 300
-                    });
-                } else {
-                    throw message;
-                }
+        function ajax_error(jxhr) {
+            var message;
+            if (jxhr.status == 0) {
+                message = 'Network Error';
+            } else {
+                message = jxhr.status;
+            }
+            message = 'AJAX Error: "' + message + '"';
+            if (options.error) {
+                options.error({
+                    message: message,
+                    code: 300
+                });
+            } else {
+                throw message;
             }
         }
         function rpc_wrapper(method) {
@@ -105,7 +113,7 @@ var rpc = (function($) {
         }
         function make_service(response) {
             var service = {};
-            $.each(response.procs, function(i, proc) {
+            response.procs.forEach(function(proc) {
                 service[proc.name] = rpc_wrapper(proc.name);
                 service[proc.name].toString = function() {
                     return "#<rpc-method: `" + proc.name + "'>";
@@ -157,4 +165,4 @@ var rpc = (function($) {
             };
         }
     };
-})(jQuery);
+})();

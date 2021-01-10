@@ -24,7 +24,6 @@ handle_json_rpc(new Foo());
 ## Client
 
 ```javascript
-
 $(function() {
     rpc({
         url: "foo.php",
@@ -46,7 +45,7 @@ $(function() {
 
 if you prefer to use promises uou can use option `promisify: true`
 
-```
+```javascript
 rpc({
     url: 'servce.php'.
     promisify: true
@@ -57,20 +56,14 @@ rpc({
 });
 ```
 
-## Dependencies
-
-Javascript part use [jQuery library][2]
-
-
 ## License
 
  Released under the [MIT license][3]
 
- Copyright (c) 2011 [Jakub T. Jankiewicz][4]
+ Copyright (c) 2011-2021 [Jakub T. Jankiewicz][4]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
-[2]: http://jquery.com/ "jQuery library"
-[3]: https://opensource.org/licenses/MIT "The MIT License (MIT)"
-[4]: https://jcubic.pl "Jakub T. Jankiewicz"
+[2]: https://opensource.org/licenses/MIT "The MIT License (MIT)"
+[3]: https://jcubic.pl/me "Jakub T. Jankiewicz"
 
