@@ -264,11 +264,12 @@ function handle_json_rpc($object, $csrf = NULL) {
             echo json_encode($response);
         } else {
             $exist = in_array($method, $methods);
-            if ($exist) {
+             if ($exist) {
                 $method_object = new ReflectionMethod($class, $method);
-                $num_expect = $method_object->getNumberOfParameters();
-                $num_expect2 = $method_object->getNumberOfRequiredParameters();
-                $can_call = $num_got == $num_expect || $num_got == $num_expect2;
+                $max_expect = $method_object->getNumberOfParameters();
+                $min_expect= $method_object->getNumberOfRequiredParameters();
+                $is_variadic = $method_object->isVariadic();
+                $can_call = ($num_got <= $max_expect || $is_variadic) && $num_got >= $min_expect;
             } else {
                 $can_call = false;
             }
