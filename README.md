@@ -24,21 +24,19 @@ handle_json_rpc(new Foo());
 ## Client
 
 ```javascript
-$(function() {
-    rpc({
-        url: "foo.php",
-        error: function(error) {
-            alert(error.message);
-        },
-        // errorOnAbort: true,
-        debug: function(json, which) {
-            console.log(which + ': ' + JSON.stringify(json));
-        }
-    })(function(foo) {
-        // now here you can access methods from Foo class
-        foo.ping("Hello")(function(response) {
-            alert(response);
-        });
+rpc({
+    url: "foo.php",
+    error: function(error) {
+        alert(error.message);
+    },
+    // errorOnAbort: true,
+    debug: function(json, which) {
+        console.log(which + ': ' + JSON.stringify(json));
+    }
+})(function(foo) {
+    // now here you can access methods from Foo class
+    foo.ping("Hello")(function(response) {
+        alert(response);
     });
 });
 ```
@@ -60,7 +58,7 @@ rpc({
 
  Released under the [MIT license][3]
 
- Copyright (c) 2011-2021 [Jakub T. Jankiewicz][4]
+ Copyright (c) 2011-2021 [Jakub T. Jankiewicz][3]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
