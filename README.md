@@ -1,4 +1,4 @@
-## Server and Client implementaion of JSON-RPC (php <=> javascript)
+## [Server and Client implementaion of JSON-RPC (php <=> javascript)](https://github.com/jcubic/json-rpc/)
 
 This is JSON-RPC implementaion, server in php and client in javascript
 based on [version 1.1 of the Specification][1]
@@ -54,11 +54,14 @@ rpc({
 });
 ```
 
+## Requirement
+
+* mbstring php module
+
 ## License
 
- Released under the [MIT license][3]
-
- Copyright (c) 2011-2021 [Jakub T. Jankiewicz][3]
+Released under the [MIT license][3]<br/>
+Copyright (c) 2011-2021 [Jakub T. Jankiewicz][3]
 
 
 [1]: http://json-rpc.org/wd/JSON-RPC-1-1-WD-20060807.html "JSON-RPC 1.1 Specification"
