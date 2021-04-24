@@ -41,7 +41,7 @@ rpc({
 });
 ```
 
-if you prefer to use promises uou can use option `promisify: true`
+if you prefer to use promises, you can use option `promisify: true`:
 
 ```javascript
 rpc({
