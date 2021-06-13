@@ -308,7 +308,7 @@ function handle_json_rpc($object, $csrf = NULL) {
                 }
             } else if (!$can_call) {
                 $msg = "Wrong number of parameters in `$method' method. Got " .
-                       "$num_got expect $num_expect";
+                       "$num_got expect $min_expect";
                 throw new JsonRpcExeption(105, $msg);
             } else {
                 //throw new Exception('x -> ' . json_encode($params));
