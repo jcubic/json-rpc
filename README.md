@@ -60,7 +60,7 @@ rpc({
 
 ## License
 
-Released under the [MIT license][3]<br/>
+Released under the [MIT license][2]<br/>
 Copyright (c) 2011-2021 [Jakub T. Jankiewicz][3]
 
 
