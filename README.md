@@ -1,4 +1,11 @@
-## [Server and Client implementaion of JSON-RPC (php <=> javascript)](https://github.com/jcubic/json-rpc/)
+# [ARCHIVED] JSON-RPC server and client (php <=> javascript)
+
+> **This repository is archived.** The code was split into two separate packages:
+>
+> - **JavaScript client**: [jcubic/json-rpc.js](https://github.com/jcubic/json-rpc.js) — published on npm as [`@jcubic/json-rpc`](https://www.npmjs.com/package/@jcubic/json-rpc)
+> - **PHP server**: [jcubic/json-rpc.php](https://github.com/jcubic/json-rpc.php) — published on Packagist as [`jcubic/json-rpc`](https://packagist.org/packages/jcubic/json-rpc)
+>
+> Please use those repositories for new issues and pull requests.
 
 This is JSON-RPC implementaion, server in php and client in javascript
 based on [version 1.1 of the Specification][1]
